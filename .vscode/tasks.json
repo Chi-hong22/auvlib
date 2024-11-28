@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-g",
+                ".."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-j4"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "dependsOn": "CMake",
+            "problemMatcher": []
+        },
+        {
+            "label": "Install",
+            "type": "shell",
+            "command": "sudo make",
+            "args": [
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "dependsOn": "Build",
+            "problemMatcher": []
+        }
+    ]
+}
