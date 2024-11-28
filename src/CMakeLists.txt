@@ -75,7 +75,7 @@ if(MSVC)
   endif()
 else()
   if (AUVLIB_USE_PYTHON3)
-    set(PYTHON_EXECUTABLE /usr/bin/python3)
+    set(PYTHON_EXECUTABLE /home/u/anaconda3/envs/auvlib/bin/python3) # /home/user/anaconda3/envs/[YOUR ENV NAME]/bin/python
   else()
     set(PYTHON_EXECUTABLE /usr/bin/python2.7)
   endif()

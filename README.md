@@ -39,7 +39,7 @@ Then execute the following `cmake` command depending on your platform:
 * **Ubuntu 18.04**: `cmake -DCMAKE_INSTALL_PREFIX=../install ..`
 * **Ubuntu 20.04**: `cmake -DCMAKE_INSTALL_PREFIX=../install ..`
 
-**NOTE:** If you are using a conda python executable, you first need to change the flag on line 78 from `set(PYTHON_EXECUTABLE /usr/bin/python3)` to something like `set(PYTHON_EXECUTABLE /home/user/anaconda3/envs/[YOUR ENV NAME]/bin/python)`.
+**NOTE:** If you are using a conda python executable, you first need to change the flag on **line 78** from `set(PYTHON_EXECUTABLE /usr/bin/python3)` to something like `set(PYTHON_EXECUTABLE /home/user/anaconda3/envs/[YOUR ENV NAME]/bin/python)`.
 
 **NOTE:** Ignore the errors about the `tinyxml2` and `glfw` targets not being in the export set;
 build files are still generated properly.
@@ -56,6 +56,14 @@ export PYTHONPATH=$PYTHONPATH:/path/to/auvlib/install/lib
 ```
 in any terminal where you want to use the python version of
 the library, or add this line to your `~/.bashrc`.
+
+## Using as a c++ library
+
+First, initialize the submodules, same as for the previous section. For using auvlib as a library in an external project,
+[check out the example projects](https://github.com/nilsbore/auvlib/tree/master/example_projects).
+If you just want to use auvlib for reading data, please see the minimal [data project](https://github.com/nilsbore/auvlib/tree/master/example_projects/data_project).
+
+For more complete documentation on C++ library usage, see [the overview document](https://github.com/nilsbore/auvlib/blob/master/docs/cpp_usage.md).
 
 ## Using as a python library
 
@@ -123,13 +131,6 @@ The project directories contains examples and documentation, see
 [pydata_tools](https://github.com/nilsbore/auvlib/tree/master/src/pydata_tools) or
 [pysonar_tracing](https://github.com/nilsbore/auvlib/tree/master/src/pysonar_tracing).
 
-## Using as a c++ library
-
-First, initialize the submodules, same as for the previous section. For using auvlib as a library in an external project,
-[check out the example projects](https://github.com/nilsbore/auvlib/tree/master/example_projects).
-If you just want to use auvlib for reading data, please see the minimal [data project](https://github.com/nilsbore/auvlib/tree/master/example_projects/data_project).
-
-For more complete documentation on C++ library usage, see [the overview document](https://github.com/nilsbore/auvlib/blob/master/docs/cpp_usage.md).
 
 ## Contributors
 
