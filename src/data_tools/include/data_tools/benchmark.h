@@ -108,6 +108,7 @@ struct track_error_benchmark {
 
     void track_img_params(const PointsT& points_maps, bool compute_range_from_points = true);
     cv::Mat draw_height_map(const PointsT &points_maps, const std::string& name);
+    
     std::vector<std::vector<std::vector<Eigen::MatrixXd> > > create_grids_from_pings(const std_data::mbes_ping::PingsT& pings);
     std::vector<std::vector<std::vector<Eigen::MatrixXd> > > create_grids_from_matrices(const PointsT& points_maps);
     std::pair<double, Eigen::MatrixXd> compute_consistency_error(
