@@ -568,50 +568,75 @@ void track_error_benchmark::add_initial(mbes_ping::PingsT& pings)
 }
 
 void track_error_benchmark::add_benchmark(const PointsT& maps_points, const PointsT& tracks_points,
-                                          const std::string& name){
-    cv::Mat error_img;
-    Eigen::MatrixXd error_vals;
-    double consistency_rms_error;
-    std::vector<std::vector<std::vector<Eigen::MatrixXd> > > grid_maps = create_grids_from_matrices(maps_points);
-    tie(consistency_rms_error, error_vals) = compute_consistency_error(grid_maps);
-    error_img = draw_error_consistency_map(error_vals);
-    std::string error_img_path = dataset_name + "_" + name + "_rms_consistency_error.png";
-    cv::imwrite(error_img_path, error_img);
-    error_img_paths[name] = error_img_path;
-    consistency_rms_errors[name] = consistency_rms_error;
-    write_matrix_to_file(error_vals, error_img_path);
+                                        const std::string& name) {
+    try {
+        
+        auto grid_maps = std::make_shared<std::vector<std::vector<std::vector<Eigen::MatrixXd>>>>(
+            create_grids_from_matrices(maps_points));
 
-    std::string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
-    cv::Mat mean_img = draw_height_map(maps_points, mean_img_path);
-    cv::imwrite(mean_img_path, mean_img);
-
-    //Compute std error
-    double average_std;
-    Eigen::MatrixXd std_grids;
-    std::vector<int> min_nbr_submap_hits{1, 2};
-    std::vector<bool> use_mean{true, false};
-    for (auto hits : min_nbr_submap_hits) {
-        for (auto mean : use_mean) {
-            tie(average_std, std_grids) = compute_grid_std(grid_maps, hits, mean);
-            std_metrics[name][hits][mean] = average_std;
-            std::string std_grids_img_path = dataset_name+"_"+name+"_std_" + std::to_string(hits)
-                                             + "_use_mean_" + std::to_string(mean) + ".png";
-            cv::imwrite(std_grids_img_path, draw_grid(std_grids));
-            write_matrix_to_file(std_grids, std_grids_img_path);
+        cv::Mat error_img;
+        Eigen::MatrixXd error_vals;
+        double consistency_rms_error;
+        
+        std::tie(consistency_rms_error, error_vals) = compute_consistency_error(*grid_maps);
+        error_img = draw_error_consistency_map(error_vals);
+        
+        std::string error_img_path = dataset_name + "_" + name + "_rms_consistency_error.png";
+        if(!error_img.empty()) {
+            cv::imwrite(error_img_path, error_img);
+            error_img_paths[name] = error_img_path;
+            consistency_rms_errors[name] = consistency_rms_error;
+            write_matrix_to_file(error_vals, error_img_path);
         }
-    }
+        error_img.release();  
 
-    cout << " -------------- " << endl;
-    cout << "Added benchmark " << name << endl;
-    cout << "RMS consistency error: " << consistency_rms_error << endl;
-    cout << "Consistency image map: " << error_img_path << endl;
-    for (auto hits : min_nbr_submap_hits) {
-        for (auto mean : use_mean) {
-            cout << "Std (" << hits << ", use mean = " << mean << "): " << std_metrics[name][hits][mean] << endl;
+        std::string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
+        {
+            cv::Mat mean_img = draw_height_map(maps_points, mean_img_path);
+            if(!mean_img.empty()) {
+                cv::imwrite(mean_img_path, mean_img);
+            }
+            mean_img.release();  
         }
-    }
-    cout << " -------------- " << endl;
 
+        for (auto hits : {1, 2}) {
+            for (auto mean : {true, false}) {
+                double average_std;
+                Eigen::MatrixXd std_grids;
+                
+                std::tie(average_std, std_grids) = compute_grid_std(*grid_maps, hits, mean);
+                std_metrics[name][hits][mean] = average_std;
+                
+                std::string std_grids_img_path = dataset_name + "_" + name + "_std_" 
+                    + std::to_string(hits) + "_use_mean_" + std::to_string(mean) + ".png";
+                
+                {
+                    cv::Mat grid_img = draw_grid(std_grids);
+                    if(!grid_img.empty()) {
+                        cv::imwrite(std_grids_img_path, grid_img);
+                        write_matrix_to_file(std_grids, std_grids_img_path);
+                    }
+                    grid_img.release();  
+                }
+            }
+        }
+
+        cout << " -------------- " << endl;
+        cout << "Added benchmark " << name << endl;
+        cout << "RMS consistency error: " << consistency_rms_error << endl;
+        cout << "Consistency image map: " << error_img_path << endl;
+        for (auto hits : {1, 2}) {
+            for (auto mean : {true, false}) {
+                cout << "Std (" << hits << ", use mean = " << mean << "): " 
+                     << std_metrics[name][hits][mean] << endl;
+            }
+        }
+        cout << " -------------- " << endl;
+
+    } catch (const std::exception& e) {
+        cerr << "Error in add_benchmark: " << e.what() << endl;
+        throw;
+    }
 }
 
 void track_error_benchmark::add_benchmark(mbes_ping::PingsT& pings, const std::string& name)
