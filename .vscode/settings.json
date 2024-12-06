@@ -1,0 +1,31 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "iostream": "cpp",
+        "tuple": "cpp",
+        "core": "cpp",
+        "sparsecore": "cpp",
+        "superlusupport": "cpp",
+        "adolcforward": "cpp",
+        "alignedvector3": "cpp",
+        "autodiff": "cpp",
+        "bvh": "cpp",
+        "fft": "cpp",
+        "kroneckerproduct": "cpp",
+        "mprealsupport": "cpp",
+        "numericaldiff": "cpp",
+        "openglsupport": "cpp",
+        "splines": "cpp",
+        "*.ipp": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "hash_map": "cpp",
+        "initializer_list": "cpp",
+        "regex": "cpp",
+        "utility": "cpp",
+        "valarray": "cpp",
+        "ostream": "cpp",
+        "numeric": "cpp",
+        "functional": "cpp"
+    }
+}

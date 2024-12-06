@@ -120,7 +120,9 @@ void track_error_benchmark::track_img_params(const PointsT& points_maps, bool co
         compute_benchmark_range_from_gt_track(range);
     }
     compute_params_from_benchmark_range(range);
+    cout << "Track image params: " << params[0] << ", " << params[1] << ", " << params[2] << ", " << params[3] << ", " << params[4] << endl;    
     track_img = cv::Mat(benchmark_nbr_rows, benchmark_nbr_cols, CV_8UC3, cv::Scalar(255, 255, 255));
+    cout << "已创建一个 cv::Mat 对象 track_img" << endl;
 }
 
 
@@ -552,13 +554,17 @@ void track_error_benchmark::add_ground_truth(mbes_ping::PingsT& pings)
 }
 
 void track_error_benchmark::add_ground_truth(const PointsT& map_points, const PointsT& track_points){
+    // 将跟踪点数据添加到地面实况跟踪数据集中
     for(const Eigen::MatrixXd& track_i: track_points){
         for(unsigned int i=0; i<track_i.rows(); i++){
             gt_track.push_back(track_i.row(i));
         }
     }
+    // 计算地图点的图像参数
     track_img_params(map_points);
+    // 将地图点和跟踪点以及标识符"ground_truth"添加到基准测试中
     add_benchmark(map_points, track_points, "ground_truth");
+    // 设置跟踪图像路径，用于保存或显示跟踪结果图像
     track_img_path = dataset_name + "_benchmark_track_img.png";
 }
 
@@ -567,7 +573,7 @@ void track_error_benchmark::add_initial(mbes_ping::PingsT& pings)
     input_pings = pings;
 }
 
-void track_error_benchmark::add_benchmark(const PointsT& maps_points, const PointsT& tracks_points,
+void track_error_benchmark::add_benchmark(PointsT& maps_points, PointsT& tracks_points,
                                           const std::string& name){
     cv::Mat error_img;
     Eigen::MatrixXd error_vals;
@@ -575,44 +581,76 @@ void track_error_benchmark::add_benchmark(const PointsT& maps_points, const Poin
     std::vector<std::vector<std::vector<Eigen::MatrixXd> > > grid_maps = create_grids_from_matrices(maps_points);
     tie(consistency_rms_error, error_vals) = compute_consistency_error(grid_maps);
     error_img = draw_error_consistency_map(error_vals);
-    std::string error_img_path = dataset_name + "_" + name + "_rms_consistency_error.png";
+    string error_img_path = dataset_name + "_" + name + "_rms_consistency_error.png";
     cv::imwrite(error_img_path, error_img);
     error_img_paths[name] = error_img_path;
     consistency_rms_errors[name] = consistency_rms_error;
-    write_matrix_to_file(error_vals, error_img_path);
 
-    std::string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
-    cv::Mat mean_img = draw_height_map(maps_points, mean_img_path);
+    cv::Mat mean_img = draw_height_map(maps_points);
+    string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
     cv::imwrite(mean_img_path, mean_img);
-
-    //Compute std error
-    double average_std;
-    Eigen::MatrixXd std_grids;
-    std::vector<int> min_nbr_submap_hits{1, 2};
-    std::vector<bool> use_mean{true, false};
-    for (auto hits : min_nbr_submap_hits) {
-        for (auto mean : use_mean) {
-            tie(average_std, std_grids) = compute_grid_std(grid_maps, hits, mean);
-            std_metrics[name][hits][mean] = average_std;
-            std::string std_grids_img_path = dataset_name+"_"+name+"_std_" + std::to_string(hits)
-                                             + "_use_mean_" + std::to_string(mean) + ".png";
-            cv::imwrite(std_grids_img_path, draw_grid(std_grids));
-            write_matrix_to_file(std_grids, std_grids_img_path);
-        }
-    }
 
     cout << " -------------- " << endl;
     cout << "Added benchmark " << name << endl;
     cout << "RMS consistency error: " << consistency_rms_error << endl;
     cout << "Consistency image map: " << error_img_path << endl;
-    for (auto hits : min_nbr_submap_hits) {
-        for (auto mean : use_mean) {
-            cout << "Std (" << hits << ", use mean = " << mean << "): " << std_metrics[name][hits][mean] << endl;
-        }
-    }
     cout << " -------------- " << endl;
 
 }
+// void track_error_benchmark::add_benchmark(const PointsT& maps_points, const PointsT& tracks_points,
+//                                           const std::string& name) {
+//     try {
+//         // 使用智能指针管理网格内存
+//         auto grid_maps = std::make_shared<std::vector<std::vector<std::vector<Eigen::MatrixXd>>>>(
+//             create_grids_from_matrices(maps_points)
+//         );
+
+//         // 计算一致性误差
+//         Eigen::MatrixXd error_vals;
+//         double consistency_rms_error;
+//         std::tie(consistency_rms_error, error_vals) = compute_consistency_error(*grid_maps);
+
+//         // 生成并保存误差一致性图像
+//         cv::Mat error_img = draw_error_consistency_map(error_vals);
+//         std::string error_img_path = dataset_name + "_" + name + "_rms_consistency_error.png";
+        
+//         // 安全检查：确保图像不为空再保存
+//         if (!error_img.empty()) {
+//             cv::imwrite(error_img_path, error_img);
+//             error_img_paths[name] = error_img_path;
+//             consistency_rms_errors[name] = consistency_rms_error;
+            
+//             // 将误差矩阵写入文件
+//             write_matrix_to_file(error_vals, error_img_path);
+//         }
+
+//         // 生成深度图
+//         std::string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
+//         cv::Mat mean_img = draw_height_map(maps_points, mean_img_path);
+        
+//         // 安全检查：确保深度图不为空再保存
+//         if (!mean_img.empty()) {
+//             cv::imwrite(mean_img_path, mean_img);
+//         }
+
+//         // 输出统计信息
+//         cout << " -------------- " << endl;
+//         cout << "Added benchmark " << name << endl;
+//         cout << "RMS consistency error: " << consistency_rms_error << endl;
+//         cout << "Consistency image map: " << error_img_path << endl;
+//         cout << " -------------- " << endl;
+
+//     } catch (const std::exception& e) {
+//         // 捕获并处理可能的异常
+//         cerr << "Error in add_benchmark: " << e.what() << endl;
+        
+//         // 可以根据需要进行额外的错误处理
+//         // 例如记录日志、通知用户或执行恢复操作
+        
+//         // 重新抛出异常，让上层调用者知道发生了错误
+//         throw;
+//     }
+// }
 
 void track_error_benchmark::add_benchmark(mbes_ping::PingsT& pings, const std::string& name)
 {
@@ -953,7 +991,6 @@ std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_er
 cv::Mat track_error_benchmark::draw_error_consistency_map(Eigen::MatrixXd values){
 
     Eigen::ArrayXXd bad = (values.array() == 0.).cast<double>();
-
     if (max_consistency_error == -1.) {
         max_consistency_error = values.maxCoeff();
         values.array() += max_consistency_error*bad;
@@ -975,7 +1012,6 @@ cv::Mat track_error_benchmark::draw_error_consistency_map(Eigen::MatrixXd values
             tie(p->z, p->y, p->x) = jet(values(i, j));
         }
     }
-
     return error_img;
 }
 

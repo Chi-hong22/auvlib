@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-g",
+                // "-g",
                 ".."
             ],
             "options": {
@@ -24,7 +24,7 @@
             "options": {
                 "cwd": "${workspaceFolder}/build"
             },
-            "dependsOn": "CMake",
+            // "dependsOn": "CMake",
             "problemMatcher": []
         },
         {

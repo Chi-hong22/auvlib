@@ -1,5 +1,9 @@
 project(data_tools)
 
+# 添加 OpenCV 配置
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_library(data_transforms src/transforms.cpp)
 
 # Add some libraries
